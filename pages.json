@@ -1,0 +1,183 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				// "navigationBarTitleText": "uni-app"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/tabBar/orderMeal/orderMeal",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "点单"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/tabBar/shopping/shopping",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "商店"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/tabBar/order/order",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "订单"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/tabBar/mine/mine",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "我的"
+				"navigationStyle": "custom"
+				
+			}
+		},
+		{
+			"path" : "pages/cashierDesk/cashierDesk",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "收银台"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/giftDetail/giftDetail",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "兑换详情"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/exchangeOrder/exchangeOrder",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "兑换订单"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/checkQRCode/checkQRCode",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "核销码"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/coupon/coupon",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "优惠券"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/points/balance/balance",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "积分余额"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/points/Integral/Integral",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "积分明细"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/wallet/wallet",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "我的钱包"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/wallet/topUp/topUp",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "我的钱包"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/wallet/topUpDetail/topUpDetail",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "充值记录"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/feedBack/feedBack",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "建议与反馈"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/contactService/contactService",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "联系客服"
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/editUserInfo/editUserInfo",
+			"style" : 
+			{
+				// "navigationBarTitleText" : "编辑资料"
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"selectedColor":"#000",
+		"list": [
+			{
+				"text": "点单",
+				"pagePath": "pages/tabBar/orderMeal/orderMeal",
+				"iconPath": "/static/tabBar/tupian.png",
+				"selectedIconPath": "/static/tabBar/select/tupian.png"
+			},
+			{
+				"text": "商店",
+				"pagePath": "pages/tabBar/shopping/shopping",
+				"iconPath": "/static/tabBar/gongnenganjian-diandan.png",
+				"selectedIconPath": "/static/tabBar/select/gongnenganjian-diandan.png"
+			},{
+				"text": "订单",
+				"pagePath": "pages/tabBar/order/order",
+				"iconPath": "/static/tabBar/dingdan.png",
+				"selectedIconPath": "/static/tabBar/select/dingdan.png"
+			},{
+				"text": "我的",
+				"pagePath": "pages/tabBar/mine/mine",
+				"iconPath": "/static/tabBar/wode.png",
+				"selectedIconPath": "/static/tabBar/select/wode.png"
+			}
+			
+		]
+	},
+	"uniIdRouter": {}
+}
