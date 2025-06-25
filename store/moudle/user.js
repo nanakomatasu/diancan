@@ -1,6 +1,6 @@
 const state = {
-	token: localStorage.getItem('token') || "8d22d4761b3b99e54098da240016eff9",
-	uid: localStorage.getItem('uid') || "858",
+	token: localStorage.getItem('token') || "",
+	uid: localStorage.getItem('uid') || "",
 	userTableNumber: localStorage.getItem('userTableNumber') || "",
 	userTableCode: localStorage.getItem('userTableCode') || "",
 	goodsCartsId: localStorage.getItem('goodsCartsId') || "",

@@ -20,21 +20,27 @@
 						<view class="order_name">
 							第七面酒馆
 						</view>
+						<view class="pay_state" v-if="item.status == 1">
+							已取消
+						</view>
 						<view class="pay_state" v-if="item.status == 2">
 							待支付
 						</view>
 						<view class="pay_state" v-if="item.status == 4">
-							制作中
-						</view>
-						<view class="pay_state" v-if="item.status == 6">
 							已完成
+						</view>
+						<view class="pay_state" v-if="item.status == 7">
+							部分退款
+						</view>
+						<view class="pay_state" v-if="item.status == 8">
+							全额退款
 						</view>
 					</view>
 					<view class="allItem" v-for="(item2,index2) in item.shop_order_item" :key="index2">
 						<view class="order_item">
 							<view class="order_pic_txt">
 								<view class="order_pic">
-									<image :src="item.goods_cover" mode="aspectFill"></image>
+									<image :src="item2.goods_cover" mode="aspectFill"></image>
 								</view>
 								<view class="order_txt">
 									<view class="txtName">
@@ -60,10 +66,39 @@
 							style="color: #fff;text-align: center;line-height: 48rpx;" v-if="item.status == 2">
 							去支付
 						</view>
+						<view class="subBtn" @click="showRefundDetails(item)"
+							style="color: #fff;text-align: center;line-height: 48rpx;" v-if="item.status == 7">
+							查看详细
+						</view>
 					</view>
 				</view>
 			</scroll-view>
 		</view>
+
+		<!-- 退款详情弹窗 -->
+		<uv-popup ref="refundPopup" mode="center" :round="10" :closeOnClickOverlay="true">
+			<view class="refund-popup">
+				<view class="refund-title">退款详情</view>
+				<view class="refund-content">
+					<view class="refund-item" v-for="(refund, index) in currentRefundList" :key="index">
+						<view class="refund-info">
+							<view class="refund-row">
+								<text class="label">退款金额：</text>
+								<text class="value">￥{{Number(refund.money).toFixed(2)}}</text>
+							</view>
+							<view class="refund-row">
+								<text class="label">退款原因：</text>
+								<text class="value">{{refund.reason_for_refund}}</text>
+							</view>
+							<view class="refund-row">
+								<text class="label">退款时间：</text>
+								<text class="value">{{refund.refund_date}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</uv-popup>
 	</view>
 </template>
 
@@ -102,13 +137,15 @@
 					name: '待付款'
 				}, {
 					id: 4,
-					name: '制作中'
-				}, {
-					id: 6,
-					name: '完成'
+					name: '已完成'
+				},
+				{
+					id:66,
+					name: '已退款'
 				}],
 				goodsPage: 1,
 				orderList: [],
+				currentRefundList: [], // 当前显示的退款列表
 			}
 		},
 		methods: {
@@ -160,6 +197,10 @@
 				this.goodsPage++
 				this.getOrder()
 				// getClassifyGodss()
+			},
+			showRefundDetails(item) {
+				this.currentRefundList = item.product_order_refund || [];
+				this.$refs.refundPopup.open();
 			},
 		}
 	}
@@ -265,7 +306,6 @@
 		image {
 			width: 100%;
 			height: 100%;
-			object-fit: cover;
 		}
 	}
 
@@ -333,6 +373,55 @@
 
 		&:active {
 			opacity: 0.8;
+		}
+	}
+
+	.refund-popup {
+		width: 600rpx;
+		background: #fff;
+		border-radius: 20rpx;
+		padding: 30rpx;
+		
+		.refund-title {
+			font-size: 32rpx;
+			font-weight: bold;
+			text-align: center;
+			margin-bottom: 30rpx;
+			color: #333;
+		}
+		
+		.refund-content {
+			max-height: 60vh;
+			overflow-y: auto;
+			
+			.refund-item {
+				background: #f8f8f8;
+				border-radius: 12rpx;
+				padding: 20rpx;
+				margin-bottom: 20rpx;
+				
+				.refund-info {
+					.refund-row {
+						display: flex;
+						margin-bottom: 16rpx;
+						font-size: 28rpx;
+						
+						&:last-child {
+							margin-bottom: 0;
+						}
+						
+						.label {
+							color: #666;
+							width: 160rpx;
+						}
+						
+						.value {
+							color: #333;
+							flex: 1;
+						}
+					}
+				}
+			}
 		}
 	}
 </style>

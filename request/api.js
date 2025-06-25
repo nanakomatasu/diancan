@@ -206,3 +206,22 @@ export const rechargeList = (params) => {
 		data: params,
 	});
 };
+
+//获取用户是否有最新优惠券
+export const getNewCoupon = (params) => {
+	return request({
+		url: 'api/user/coupon_list',
+		method: 'POST',
+		data: params,
+	});
+};
+
+//检查公众号关注状态
+export const checkOfficialAccountFollow = (params) => {
+	return request({
+		url: 'api/Login/is_subscribe',
+		method: 'POST',
+		data: params,
+	});
+};
+

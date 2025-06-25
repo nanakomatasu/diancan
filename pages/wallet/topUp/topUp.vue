@@ -16,8 +16,8 @@
 						<view class="line"></view>
 						充值金额
 					</view>
-					<view class="title_on" @click="toTopUpDetail">
-						<text>充值记录</text> <uv-icon name="arrow-right" size="8" color="#fff"></uv-icon>
+					<view class="title_on">
+						<!-- <text>充值记录</text> <uv-icon name="arrow-right" size="8" color="#fff"></uv-icon> -->
 					</view>
 				</view>
 				<view class="topUpBtn">

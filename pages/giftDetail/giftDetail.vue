@@ -19,7 +19,7 @@
 						<image src="/static/utilIcon/utilIcon.png" mode="aspectFill"></image>
 					</view>
 					<view class="gift_credits">
-						{{goodsDetail.money}}积分
+						{{goodsDetail.points}}积分
 					</view>
 				</view>
 			</view>
@@ -109,9 +109,11 @@
 <style lang="scss" scoped>
 	page {
 		background-color: #f6f6f6;
+		width: 100%;
 	}
 
 	.giftDetail {
+		width: 100%;
 		position: relative;
 		padding-bottom: 100rpx;
 	}
@@ -124,7 +126,7 @@
 	}
 
 	.gift_img {
-		width: 780rpx;
+		width: 100%;
 		height: 602rpx;
 		background-color: azure;
 		margin: auto;

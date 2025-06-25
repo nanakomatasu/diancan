@@ -10,15 +10,20 @@
 					<view class="coupon_info" v-for="(item,index) in clist" :key="index">
 						<view class="coupon_img_txt">
 							<view class="coupon_img">
-								<span class="currency">￥</span>
-								<span class="amount">{{item.num_packet}}</span>
+								<view class="amount_wrapper">
+									
+									<span class="amount"><span class="currency">￥</span>{{item.num_packet}}</span>
+									<view class="validity_text" v-if="item.type == 1">有效期一个月</view>
+									<view class="validity_text" v-if="item.type == 2">已使用</view>
+									<view class="validity_text" v-if="item.type == 3">已过期</view>
+								</view>
 							</view>
 							<view class="coupon_txt">
 								<view class="coupon_title">
-									{{item.money == "0" ? '无门槛优惠卷' : '满￥' + item.money+'使用'}}
+									{{item.title}}
 								</view>
 								<view class="coupon_time">
-									{{item.create_at}}
+									{{item.thaw_date}}后可以使用
 								</view>
 								<view class="coupon_desc">
 									{{item.money == "0" ? '无门槛优惠卷' : '满￥' + item.money+'使用'}}
@@ -31,6 +36,9 @@
 							</view>
 							<view class="isUse" v-if="item.type == 2">
 								已使用
+							</view>
+							<view class="isUse" v-if="item.type == 3">
+								已过期
 							</view>
 						</view>
 					</view>
@@ -165,6 +173,12 @@
 		align-items: center;
 	}
 
+	.amount_wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
 	.currency {
 		color: #E5473A;
 		font-size: 28rpx;
@@ -174,6 +188,7 @@
 		font-size: 64rpx;
 		color: #E84737;
 		font-weight: 500;
+		line-height: 1;
 	}
 
 	.coupon_txt {
@@ -231,5 +246,11 @@
 
 	.active:active {
 		background-color: #FFF1EF;
+	}
+
+	.validity_text {
+		font-size: 20rpx;
+		color: #616161;
+		margin-top: 8rpx;
 	}
 </style>

@@ -24,7 +24,7 @@
 							第七面酒馆
 						</view>
 						<view class="item_state" v-if="item.status == 4">
-							已支付
+							待核销
 						</view>
 						<view class="item_state" v-if="item.status == 5">
 							待核销
@@ -99,7 +99,7 @@
 					id: 0,
 					name: '全部'
 				}, {
-					id: 5,
+					id: 4,
 					name: '待核销'
 				}, {
 					id: 6,

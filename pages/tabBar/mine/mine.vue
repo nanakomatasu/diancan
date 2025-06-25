@@ -88,25 +88,25 @@
 				image: '/static/mine/mineBack.png',
 				user: {},
 				exchangeFunc: [{
-						id: 1,
+						id: 0,
 						icon: '/static/mine/quanbu.png',
 						url: '/pages/exchangeOrder/exchangeOrder?id=0',
 						title: '全部'
 					},
 					{
-						id: 2,
+						id: 4,
 						icon: '/static/mine/daihexiao.png',
-						url: '/pages/exchangeOrder/exchangeOrder?id=5',
+						url: '/pages/exchangeOrder/exchangeOrder?id=4',
 						title: '待核销'
 					},
 					{
-						id: 3,
+						id: 6,
 						icon: '/static/mine/yiwancheng.png',
 						url: '/pages/exchangeOrder/exchangeOrder?id=6',
 						title: '已完成'
 					},
 					{
-						id: 4,
+						id: 41,
 						icon: '/static/mine/youhuiquan.png',
 						url: '/pages/coupon/coupon',
 						title: '优惠卷'
@@ -222,57 +222,75 @@
 		justify-content: space-between;
 		align-items: center;
 		width: 100%;
-		height: 120rpx;
+		padding: 20rpx 0;
 		margin-bottom: 40rpx;
 	}
 
 	.user-pic-txt {
 		display: flex;
 		align-items: center;
-		width: 70%;
+		flex: 1;
+		min-width: 0;
 	}
 
 	.user-pic {
-		width: 100rpx;
-		height: 100rpx;
+		flex-shrink: 0;
+		width: 120rpx;
+		height: 120rpx;
 		border-radius: 50%;
 		overflow: hidden;
 		box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+		position: relative;
 
 		image {
+			position: absolute;
+			top: 0;
+			left: 0;
 			width: 100%;
 			height: 100%;
+			object-fit: cover;
 		}
 	}
 
 	.user-txt {
-		padding-left: 24rpx;
+		padding-left: 32rpx;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		flex: 1;
+		min-width: 0;
 	}
 
 	.user-name {
 		font-size: 36rpx;
 		color: $text-color-light;
 		font-weight: 500;
-		margin-bottom: 8rpx;
+		margin-bottom: 12rpx;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.user-id {
 		font-size: 24rpx;
-		color: $text-color-muted;
+		color: rgba(255, 255, 255, 0.8);
 	}
 
 	.edit-btn {
-		width: 48rpx;
-		height: 48rpx;
+		flex-shrink: 0;
+		width: 64rpx;
+		height: 64rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		margin-left: 20rpx;
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 50%;
+		transition: all 0.3s;
+
+		&:active {
+			background: rgba(255, 255, 255, 0.2);
+		}
 	}
 
 	// 兑换订单区域

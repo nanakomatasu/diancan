@@ -39,7 +39,7 @@
 										<image src="/static/utilIcon/utilIcon.png" mode=""></image>
 									</view>
 									<view class="shop-item__points">
-										{{item.money}}积分
+										{{item.points}}积分
 									</view>
 								</view>
 								<view class="shop-item__button" @click="toGiftDetail(item.id)">
@@ -191,7 +191,7 @@
 		height: 67vh;
 		margin-top: 40rpx;
 		box-sizing: border-box;
-		padding: 0 32rpx;
+		padding: 0 32rpx 100rpx 32rpx;
 	}
 
 	.shop-grid {

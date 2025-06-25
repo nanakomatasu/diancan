@@ -5,6 +5,24 @@
 
 		<!-- 自定义导航栏 -->
 		<customNavVue title="收银台" icon-show="true"></customNavVue>
+
+		<!-- 优惠券弹窗 -->
+		<view class="coupon-popup-new" v-if="showCoupon">
+			<view class="coupon-content">
+				<image src="/static/couponback.png" mode="aspectFill" class="coupon-bg"></image>
+				<view class="coupon-info">
+					<view class="coupon-title">恭喜获得优惠券</view>
+					<view class="coupon-desc" v-if="couponCondition > '0.00'">满{{couponCondition}}减{{couponAmount}}
+					</view>
+					<view class="coupon-desc" v-else>无门槛优惠券减{{couponAmount}}</view>
+					<view class="coupon-time">{{couponTime}}后可用</view>
+				</view>
+			</view>
+			<view class="close-coupon" @click="closeCoupon">
+				<uv-icon name="close" color="#fff" size="24"></uv-icon>
+			</view>
+		</view>
+
 		<uv-popup ref="passwordPopup" mode="center" @change="change" bgColor="#fff" round="20">
 
 			<view class="password-content"
@@ -43,7 +61,7 @@
 							<view class="coupon-title">
 								{{ item.money == '0' ? '无门槛优惠券' : '满减优惠券' }}
 							</view>
-							<view class="coupon-date">{{ formatExpireTime(item.expire_time) }}</view>
+							<view class="coupon-date">一个月后到期</view>
 							<view class="coupon-use">点击使用</view>
 						</view>
 						<view class="coupon-selected-icon" v-if="couponItem.id === item.id">
@@ -143,7 +161,7 @@
 											style="font-size: 20rpx;margin-left: 32rpx;">余额：{{user.data_user_wallet.money}}元</span>
 									</view>
 									<view class="coupon_txt_bot">
-										亿万用户的选择，更快更安全
+										充值消费，优惠翻倍
 									</view>
 								</view>
 							</view>
@@ -180,7 +198,8 @@
 		couponList,
 		mealOrder,
 		userInfo,
-		pay
+		pay,
+		getNewCoupon
 	} from '../../request/api';
 	export default {
 		components: {
@@ -202,7 +221,12 @@
 				couponItemShow: false,
 				user: {},
 				password: "",
-				orderInfo: {}
+				orderInfo: {},
+				// 新增优惠券相关数据
+				showCoupon: false,
+				couponAmount: '0',
+				couponCondition: '0',
+				couponTime: ''
 			}
 		},
 		computed: {
@@ -219,7 +243,7 @@
 				this.orderSn = options.orderSn
 			}
 			this.getUser()
-			this.getList()
+			// 先获取订单信息，成功后再获取优惠券列表
 			this.getOrder(options.orderSn)
 		},
 		methods: {
@@ -296,13 +320,17 @@
 							this.handleWxPay(res.data);
 							// #endif
 						} else if (type === 2) { // 钱包支付
-							if (this.$refs.passwordPopup) {
-								this.$refs.passwordPopup.open();
+							if (res.code != 1) {
+								uni.showToast({
+									icon: 'none',
+									title: res.info
+								})
 							} else {
 								uni.showToast({
-									title: '支付组件加载失败',
-									icon: 'none'
-								});
+									icon: 'success',
+									title: '支付成功'
+								})
+								this.handlePaymentSuccess()
 							}
 						}
 					}).catch(err => {
@@ -322,7 +350,7 @@
 			},
 			waitPay() {
 				uni.switchTab({
-					url:'/pages/tabBar/order/order'
+					url: '/pages/tabBar/order/order'
 				})
 			},
 			handleWxPay(payData) {
@@ -394,18 +422,8 @@
 				);
 			},
 			handlePaymentSuccess() {
-				setTimeout(() => {
-					uni.switchTab({
-						url: '/pages/tabBar/order/order',
-						fail: (err) => {
-							console.error('页面跳转失败:', err);
-							uni.showToast({
-								title: '页面跳转失败',
-								icon: 'none'
-							});
-						}
-					});
-				}, 1500);
+				// 检查新优惠券
+				this.checkNewCoupon();
 			},
 			open() {
 				if (!this.$refs.popup) {
@@ -451,10 +469,15 @@
 					return;
 				}
 
+				// 获取当前订单金额
+				const orderAmount = parseFloat(this.orderInfo.amount_real) || 0;
+				const presentTime = this.orderInfo.present_time;
+				console.log(this.orderInfo)
+
 				couponList({
 					uid: this.uid,
 					token: this.token,
-					type: 0
+					type: 1
 				}).then(res => {
 					if (res.code !== 1) {
 						uni.showToast({
@@ -464,47 +487,22 @@
 						return;
 					}
 
-					// 确保订单信息存在
-					if (!this.orderInfo || !this.orderInfo.present_time || !this.orderInfo.amount_real) {
-						this.clist = [];
-						console.log('订单信息不完整，无法筛选优惠券');
-						return;
-					}
-
-					const presentTime = parseInt(this.orderInfo.present_time);
-					const orderAmount = parseFloat(this.orderInfo.amount_real);
-
-					if (isNaN(presentTime) || isNaN(orderAmount)) {
-						console.error('订单数据格式无效');
-						this.clist = [];
-						return;
-					}
-
-					console.log('开始优惠券筛选，总数量:', Array.isArray(res.data) ? res.data.length : 0);
-					console.log('订单金额:', orderAmount, '当前时间:', presentTime);
-
-					// 筛选可用优惠券：thaw_time > present_time 且 order_amount > money
+					// 筛选可用优惠券
 					this.clist = Array.isArray(res.data) ? res.data.filter(coupon => {
 						try {
-							const thawTime = coupon.thaw_time === null ? 0 : parseInt(coupon.thaw_time);
-							const minSpendAmount = parseFloat(coupon.money);
-
-							const isNoLimitCoupon = coupon.money === "0";
-							const meetsSpendingRequirement = !isNaN(minSpendAmount) && orderAmount >
-								minSpendAmount;
-							const meetsTimeRequirement = thawTime === null || thawTime === 0 || thawTime >
-								presentTime;
-
-							const isValid = (isNoLimitCoupon || meetsSpendingRequirement) &&
-								meetsTimeRequirement;
-
-							if (isValid) {
-								console.log('通过筛选的优惠券:', coupon.id,
-									'金额条件:', isNoLimitCoupon ? '无门槛' : `满${coupon.money}元`,
-									'时间条件:', thawTime === null ? '无限制' : `解冻时间${thawTime}`);
+							// 检查解冻时间
+							const thawTime = parseInt(coupon.thaw_time);
+							console.log('thawTime', thawTime)
+							console.log('presentTime', presentTime)
+							if (thawTime && thawTime > presentTime) {
+								return false;
 							}
 
-							return isValid;
+							// 检查使用条件
+							const minSpendAmount = Number(coupon.money);
+							console.log('minSpendAmount', minSpendAmount)
+							// 无门槛优惠券或满足满减条件
+							return coupon.money === "0" || Number(orderAmount) >= minSpendAmount;
 						} catch (e) {
 							console.error('优惠券数据处理错误:', e, coupon);
 							return false;
@@ -549,8 +547,12 @@
 							});
 							return;
 						}
-						this.realAmount = orderItem.payment_amount == "0.00" ? orderItem.amount_real : orderItem.payment_amount
+						this.realAmount = orderItem.payment_amount == "0.00" ? orderItem.amount_real : orderItem
+							.payment_amount
 						this.orderInfo = orderItem;
+
+						// 获取到订单信息后，再获取优惠券列表
+						this.getList();
 
 						// 检查支付截止时间
 						const deadline = parseInt(orderItem.payment_deadline);
@@ -591,9 +593,29 @@
 					return;
 				}
 
-				// 直接选择优惠券，不需要弹窗确认
-				this.couponItem = this.couponItem.id === item.id ? {} : item;
-				this.couponItemShow = this.couponItem.id ? true : false;
+				// 如果点击的是已选中的优惠券，则取消选择
+				if (this.couponItem.id === item.id) {
+					this.couponItem = {};
+					this.couponItemShow = false;
+					// 恢复原始金额
+					this.realAmount = this.orderInfo.payment_amount == "0.00" ? 
+						this.orderInfo.amount_real : 
+						this.orderInfo.payment_amount;
+					return;
+				}
+
+				// 选择新的优惠券
+				this.couponItem = item;
+				this.couponItemShow = true;
+
+				// 计算优惠后的金额
+				const originalAmount = parseFloat(this.orderInfo.payment_amount == "0.00" ? 
+					this.orderInfo.amount_real : 
+					this.orderInfo.payment_amount);
+				const couponAmount = parseFloat(item.num_packet);
+				
+				// 确保金额不会小于0
+				this.realAmount = Math.max(0, (originalAmount - couponAmount)).toFixed(2);
 			},
 			confirmCoupon() {
 				if (this.couponItem && this.couponItem.id) {
@@ -610,10 +632,7 @@
 				}
 			},
 			formatExpireTime(timestamp) {
-				if (!timestamp) return '永久有效';
-
-				const date = new Date(parseInt(timestamp) * 1000);
-				return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} 到期`;
+				return '一个月后到期';
 			},
 			runBack(seconds) {
 				try {
@@ -651,7 +670,70 @@
 				}).then(res => {
 					this.user = res.data
 				})
-			}
+			},
+			// 关闭优惠券弹窗
+			closeCoupon() {
+				this.showCoupon = false;
+				// 关闭优惠券后执行页面跳转
+				uni.switchTab({
+					url: '/pages/tabBar/order/order',
+					fail: (err) => {
+						console.error('页面跳转失败:', err);
+						uni.showToast({
+							title: '页面跳转失败',
+							icon: 'none'
+						});
+					}
+				});
+			},
+
+			// 获取新优惠券
+			checkNewCoupon() {
+				getNewCoupon({
+					uid: this.uid,
+					token: this.token
+				}).then(res => {
+					if (res.data === null) {
+						// 没有优惠券，直接跳转
+						uni.switchTab({
+							url: '/pages/tabBar/order/order',
+							fail: (err) => {
+								console.error('页面跳转失败:', err);
+								uni.showToast({
+									title: '页面跳转失败',
+									icon: 'none'
+								});
+							}
+						});
+						return;
+					}
+
+					// 设置优惠券金额（使用num_packet字段）
+					this.couponAmount = res.data.num_packet || '0';
+
+					// 设置优惠券条件（使用money字段）
+					this.couponCondition = res.data.money || '0.00';
+
+					this.couponTime = res.data.thaw_date;
+
+					this.showCoupon = true;
+
+					// 不再自动关闭优惠券，等待用户手动关闭
+				}).catch(error => {
+					console.error('获取新优惠券失败:', error);
+					// 发生错误时直接跳转
+					uni.switchTab({
+						url: '/pages/tabBar/order/order',
+						fail: (err) => {
+							console.error('页面跳转失败:', err);
+							uni.showToast({
+								title: '页面跳转失败',
+								icon: 'none'
+							});
+						}
+					});
+				});
+			},
 		}
 	}
 </script>
@@ -991,5 +1073,87 @@
 	.coupon-arrow {
 		font-size: 24rpx;
 		color: #7B0302;
+	}
+
+	/* 新优惠券弹窗样式 */
+	.coupon-popup-new {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.6);
+		z-index: 10000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		.coupon-content {
+			position: relative;
+			width: 600rpx;
+			height: 320rpx;
+
+			.coupon-bg {
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				top: 0;
+				left: 0;
+			}
+
+			.coupon-info {
+				position: relative;
+				z-index: 1;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+				justify-content: center;
+				color: #fff;
+				padding-top: 20rpx;
+				padding-left: 80rpx;
+				transform: rotate(-3deg);
+
+				.coupon-title {
+					font-size: 40rpx;
+					font-weight: bold;
+					margin-bottom: 20rpx;
+					color: #FFD700;
+					text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.3);
+				}
+
+				.coupon-desc {
+					font-size: 32rpx;
+					color: #fff;
+					text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.3);
+					margin-bottom: 10rpx;
+				}
+
+				.coupon-time {
+					font-size: 24rpx;
+					color: rgba(255, 255, 255, 0.9);
+					text-shadow: 1rpx 1rpx 2rpx rgba(0, 0, 0, 0.3);
+				}
+			}
+		}
+
+		.close-coupon {
+			position: fixed;
+			z-index: 10001;
+			top: 50%;
+			right: 50%;
+			transform: translate(340rpx, -200rpx);
+			width: 60rpx;
+			height: 60rpx;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: rgba(0, 0, 0, 0.5);
+			border-radius: 50%;
+			
+			&:active {
+				opacity: 0.8;
+			}
+		}
 	}
 </style>

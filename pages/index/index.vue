@@ -73,81 +73,74 @@
 			}
 		},
 		onLoad(options) {
-			// 1. 处理桌号信息
-			this.handleTableCode(options);
-
+			// 1. 检查是否有桌号信息
+			const hasTableCode = this.checkTableCode(options);
 			// 2. 处理微信授权和登录
-			this.handleWechatAuth();
+			this.handleWechatAuth(hasTableCode);
 		},
 		methods: {
-			// 处理桌号信息
-			handleTableCode(options) {
+			// 检查是否有桌号信息
+			checkTableCode(options) {
 				if (options && options.table_number_or_code) {
 					store.commit('user/saveUserTableCode', options.table_number_or_code);
-					this.getNumber();
+					return true;
 				} else {
 					// 检查URL中是否有桌号参数
 					const urlParams = new URLSearchParams(window.location.search);
 					const tableCode = urlParams.get('table_number_or_code');
-					
+
 					if (tableCode) {
-						// URL中有桌号参数，保存并获取桌号信息
 						store.commit('user/saveUserTableCode', tableCode);
-						this.getNumber();
-					} else if (this.tableCode) {
-						// store中已有桌号，获取桌号信息
-						this.getNumber();
-					} else {
-						uni.showToast({
-							icon: 'none',
-							title: '未获取到桌号信息'
-						});
+						return true;
 					}
 				}
+				// 没有桌号信息，清理相关缓存
+				store.commit('user/saveUserTableCode', '');
+				store.commit('user/saveUserTableNumber', '');
+				return false;
 			},
 
 			// 处理微信授权和登录
-			handleWechatAuth() {
+			handleWechatAuth(hasTableCode) {
 				// 获取当前URL
 				const currentUrl = window.location.href;
 				// 解析URL中的参数
 				const urlParams = new URLSearchParams(window.location.search);
 				const code = urlParams.get('code');
-				
+				const skipAuth = urlParams.get('skip_auth');
+
+				// 检查是否在本地环境且设置了跳过授权
+				if (skipAuth === 'true' && process.env.NODE_ENV === 'development') {
+					// 本地开发环境，模拟登录成功
+					store.commit('user/saveToken', '99dc438eb1533b8598646ffd99379bc0');
+					store.commit('user/saveUid', '861');
+					store.commit('user/saveUserTableCode', 'JN2025032616145023');
+					this.handleAfterLogin(true);
+					return;
+				}
+
 				// 检查是否包含code参数
 				if (!code) {
 					// 没有code参数，重定向到微信授权页面
-					this.redirectToWechatAuth();
+					this.redirectToWechatAuth(hasTableCode);
 				} else {
 					// 有code参数，进行登录
-					this.loginWithWechatCode(code);
+					this.loginWithWechatCode(code, hasTableCode);
 				}
 			},
 
 			// 重定向到微信授权页面
-			redirectToWechatAuth() {
+			redirectToWechatAuth(hasTableCode) {
 				const appid = APPID;
 				// 获取基础URL（不含查询参数）
 				const baseUrl = window.location.href.split('?')[0];
 				// 构建重定向URL，确保保留桌号参数
 				let redirectUrl = baseUrl;
-				
-				// 如果有桌号，添加到重定向URL中
-				if (this.tableCode) {
+
+				if (hasTableCode) {
 					redirectUrl = `${baseUrl}?table_number_or_code=${this.tableCode}`;
-				} else {
-					// 检查URL中是否有桌号参数
-					const urlParams = new URLSearchParams(window.location.search);
-					const tableCode = urlParams.get('table_number_or_code');
-					
-					if (tableCode) {
-						// URL中有桌号参数，添加到重定向URL中
-						redirectUrl = `${baseUrl}?table_number_or_code=${tableCode}`;
-						// 同时保存到store中
-						store.commit('user/saveUserTableCode', tableCode);
-					}
 				}
-				
+
 				const uri = encodeURIComponent(redirectUrl);
 				const authURL =
 					`https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appid}&redirect_uri=${uri}&response_type=code&scope=snsapi_base&state=123#wechat_redirect`;
@@ -155,7 +148,7 @@
 			},
 
 			// 使用微信code进行登录
-			loginWithWechatCode(code) {
+			loginWithWechatCode(code, hasTableCode) {
 				loginApi({
 					code: code
 				}).then(res => {
@@ -163,11 +156,7 @@
 						store.commit('user/saveToken', res.data.token);
 						store.commit('user/saveUid', res.data.id);
 						this.resInfo = res.data;
-
-						// 登录成功后获取桌号信息（如果之前未获取）
-						if (!this.tableTitle) {
-							this.getNumber();
-						}
+						this.handleAfterLogin(hasTableCode);
 					} else {
 						uni.showToast({
 							icon: 'none',
@@ -181,6 +170,19 @@
 						title: '登录请求失败'
 					});
 				});
+			},
+
+			// 处理登录后的逻辑
+			handleAfterLogin(hasTableCode) {
+				if (hasTableCode) {
+					// 有桌号，获取桌号信息
+					this.getNumber();
+				} else {
+					// 没有桌号，直接跳转到点餐页面
+					uni.switchTab({
+						url: "/pages/tabBar/order/order"
+					});
+				}
 			},
 
 			selectBtn(item) {
